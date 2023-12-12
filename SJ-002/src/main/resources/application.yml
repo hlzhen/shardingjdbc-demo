@@ -1,0 +1,82 @@
+server:
+  port: 8088
+
+
+
+spring:
+  # 开启ShardingSphere 配置sharding-jdbc
+  shardingsphere:
+    # 显示shardingsphere执行的sql
+    props:
+      sql:
+        show: true
+    datasource:
+      names: ds-0
+      ds-0:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/huanglz?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&allowPublicKeyRetrieval=true
+        username: root
+        password: root
+        #初始化建立物理链接的个数
+        initial-size: 5
+        #最大连接池数量
+        max-active: 10
+        #最小连接池数量
+        min-idle: 5
+        #获取连接时最大等待时间，单位毫秒
+        max-wait: 60000
+        # 超过时间限制是否回收
+        removeAbandoned: true
+        # 当连接超过3分钟后会强制进行回收
+        removeAbandonedTimeout: 180
+        #打开PSCache，并且指定每个连接上PSCache的大小
+        pool-prepared-statements: true
+        max-pool-prepared-statement-per-connection-size: 20
+        #间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+        time-between-eviction-runs-millis: 60000
+        min-evictable-idle-time-millis: 300000
+        max-evictable-idle-time-millis: 600000
+        #用来检测连接是否有效的sql 必须是一个查询语句。mysql中为 select 'x'， oracle中为 select 1 from dual
+        validation-query: select 'x'
+        # validation-query-timeout: 5000
+        #申请连接时会执行validationQuery检测连接是否有效,开启会降低性能,默认为true
+        test-on-borrow: false
+        #归还连接时会执行validationQuery检测连接是否有效,开启会降低性能,默认为true
+        test-on-return: false
+        test-while-idle: true
+        #通过connectProperties属性来打开mergeSql功能，慢SQL记录
+        connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+        #filters: #配置多个英文逗号分隔(统计，sql注入)
+        filters: stat,wall
+        #合并多个DruidDataSource的监控数据
+        use-global-data-source-stat: false
+        #配置stat-view-servlet
+        stat-view-servlet:
+          #允许开启监控
+          enabled: true
+          #监控面板路径
+          url-pattern: /druid/*
+    sharding:
+      tables:
+        hlzlog_x:
+          actual-data-nodes: ds-0.hlzlog_x
+          table-strategy:
+            standard:
+              precise-algorithm-class-name: org.sj.demo.config.HlzLogTableShardingStrategy
+          key-generator:
+            column: id
+            type: SNOWFLAKE
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+# mybatis配置
+mybatis:
+  # mapper.xml文件位置
+  mapper-locations: classpath:mapper/*.xml
+  # 实体包别名
+  type-aliases-package: org.sj.entity
+  configuration:
+    # 驼峰配置
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
